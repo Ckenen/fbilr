@@ -17,8 +17,6 @@ The usage of FBILR is shown below:
 After that, you can visualize the result with the following command:
 
     plot_barcode_detail.py -m metrics.txt -p outdir/out
-    # or 
-    pigz -p 4 -d -c metrics.txt.gz | plot_barcode_detail.py -p outdir/out
 
 ## Output files
 
@@ -54,7 +52,6 @@ The `stats.txt` is a tab-delimited file that consists of 2 columns (shown ad fol
     Bar2	236937
     Bar3	1579564
     Bar4	1266932
-    Bar40	1983196
     Bar5	2876236
     Bar6	1571845
     Bar7	1663693
@@ -76,3 +73,9 @@ In case 2, the barcode exists in the middle of the read with 2 edit distance (2 
 In case 3, the barcode exists in the tail of the read with 3 edit distance (1 mismatch and 2 deletion).
 
 Finally, the bar1 is the best-matched barcode in this read.
+
+## Packaging and distributing
+
+    python -m build
+    python3 -m twine upload --repository pypi dist/*
+

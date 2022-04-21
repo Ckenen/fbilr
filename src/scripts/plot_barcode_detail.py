@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 import sys
-import gzip
 from collections import defaultdict
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from pygz import GzipFile
 
 
 MAX_LENGTH = 5000
 BIN_WIDTH = 100
 BIN_COUNT = int(MAX_LENGTH / BIN_WIDTH)
-MAX_EDIT_DISTANCE = 6
+MAX_EDIT_DISTANCE = 5
 
 
 def plot_edit_distance_distribution(rows, outfile):
@@ -152,6 +152,79 @@ def plot_length_edit_distance(rows, outfile):
     plt.tight_layout()
     plt.savefig(outfile, dpi=300)
     plt.close()
+    
+
+def plot_location(rows, outfile):
+    counter_f_h = defaultdict(int)
+    counter_f_t = defaultdict(int)
+    counter_r_h = defaultdict(int)
+    counter_r_t = defaultdict(int)
+
+    for row in rows:
+        if row[7] > MAX_EDIT_DISTANCE: # edit distance
+            continue
+        orient = row[3]
+        length = row[1]
+        start = row[5]
+        end = row[6]
+        dis1 = start
+        dis2 = length - end
+        if orient == "F":
+            counter_f_h[dis1] += 1
+            counter_f_t[dis2] += 1
+        else:
+            counter_r_h[dis1] += 1
+            counter_r_t[dis2] += 1
+
+    fig, axs = plt.subplots(2, 2, figsize=(10, 6))
+
+    plt.sca(axs[0][0])
+    plt.title("Barcodes in forward")
+    xs = np.arange(0, 101)
+    ys = [counter_f_h[x] for x in xs]
+    t = sum(counter_f_h.values())
+    ys = np.array(ys) * 100 / t
+    plt.bar(xs, ys, width=1)
+    plt.xlim(min(xs) - 1, max(xs) + 1)
+    plt.ylabel("Percentage (%)")
+    plt.xlabel("Distance to head end")
+    plt.tight_layout()
+
+    plt.sca(axs[0][1])
+    plt.title("Barcodes in reverse")
+    xs = np.arange(-100, 1)
+    ys = [counter_f_t[-x] for x in xs]
+    t = sum(counter_f_t.values())
+    ys = np.array(ys) * 100 / t
+    plt.bar(xs, ys, width=1)
+    plt.xlim(min(xs) - 1, max(xs) + 1)
+    plt.xlabel("Distance to tail end")
+    plt.tight_layout()
+
+    plt.sca(axs[1][0])
+    plt.title("Barcodes in forward")
+    xs = np.arange(0, 101)
+    ys = [counter_r_h[x] for x in xs]
+    t = sum(counter_r_h.values())
+    ys = np.array(ys) * 100 / t
+    plt.bar(xs, ys, width=1)
+    plt.xlim(min(xs) - 1, max(xs) + 1)
+    plt.ylabel("Percentage (%)")
+    plt.xlabel("Distance to head end")
+    plt.tight_layout()
+
+    plt.sca(axs[1][1])
+    plt.title("Barcodes in reverse")
+    xs = np.arange(-100, 1)
+    ys = [counter_r_t[-x] for x in xs]
+    t = sum(counter_r_t.values())
+    ys = np.array(ys) * 100 / t
+    plt.bar(xs, ys, width=1)
+    plt.xlim(min(xs) - 1, max(xs) + 1)
+    plt.xlabel("Distance to tail end")
+    plt.tight_layout()
+
+    plt.savefig(outfile, dpi=300)
 
 
 def main():
@@ -159,7 +232,7 @@ def main():
 
     rows = []
     if infile.endswith(".gz"):
-        f = gzip.open(infile, "rt")
+        f = GzipFile(infile, "rt")
     else:
         f = open(infile)
     for line in f:
@@ -175,6 +248,7 @@ def main():
     plot_orient_loc_distribution(rows, prefix + ".orient_loc.pdf")
     plot_length_distribution(rows, prefix + ".len.pdf")
     plot_length_edit_distance(rows, prefix + ".len_ed.pdf")
+    plot_location(rows, prefix + ".loc_dis.pdf")
 
 
 if __name__ == '__main__':
