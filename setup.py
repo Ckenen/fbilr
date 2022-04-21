@@ -26,7 +26,7 @@ setuptools.setup(
         "Operating System :: Unix"
     ],
     scripts=scripts,
-    install_requires=['edlib', 'biopython', 'numpy', 'matplotlib', 'pygz'],
+    install_requires=['edlib', 'biopython', 'numpy', 'matplotlib'],
     test_suite="tests",
     python_requires=">=3.6",
 )

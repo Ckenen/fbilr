@@ -6,7 +6,6 @@ import multiprocessing
 from collections import defaultdict
 import edlib
 from Bio import SeqIO
-from pygz import GzipFile, PigzFile
 
 
 def align(seq, ref):
@@ -32,7 +31,7 @@ def load_reads(path):
     if path == "-":
         f = sys.stdin
     elif path.endswith(".gz"):
-        f = GzipFile(path, "rt")
+        f = gzip.open(path, "rt")
     else:
         f = open(path)
     for i, line in enumerate(f):
@@ -114,7 +113,7 @@ def find_barcode(seq_of_head, seq_of_tail, read_length, barcodes):
     elif loc1 >= md:
         loc = "T"
     else:
-        loc = "U"
+        loc = "M"
     ed = a["editDistance"]
     return bc, orient, loc, loc1, loc2, ed
 
@@ -136,24 +135,33 @@ def main():
     parser.add_option("-t", "--threads", dest="threads",
                       type="int", default=1, 
                       help="Number of threads used.")
-    parser.add_option("-p", "--prefix", dest="prefix",
-                      default="./out", 
-                      help="Prefix of outputs.")
+    parser.add_option("-m", "--metrics", dest="metrics", default=None, 
+                      help="path of metrics file. [stdout]")
+    parser.add_option("-s", "--stats", dest="stats", default=None, 
+                      help="path of stats file. [stderr]")
+    parser.add_option("-e", "--edit-istance", dest="ed", default=5)
     parser.add_option("-w", "--width", dest="width", default=200, 
                       help="Find barcode sequences within WIDTH of the boundary.")
     options, args = parser.parse_args()
 
     bc_fasta, in_fastq = args
-    prefix = options.prefix
     threads = options.threads
     width = options.width
+    metrics = options.metrics
+    stats = options.stats
 
     barcodes = load_barcodes(bc_fasta)
     counter = defaultdict(int)
-    counter_ed_threshold = 5
+    counter_ed_threshold = options.ed
     count_per_thread = 20000
     count_per_batch = threads * count_per_thread
-    metrics = PigzFile(prefix + ".metrics.gz", "wt")
+    
+    if metrics is None:
+        mf = sys.stdout
+    elif metrics.endswith(".gz"):
+        mf = gzip.open(metrics, "wt")
+    else:
+        mf = open(metrics, "w+")
 
     # multi-threads
     if threads > 1:
@@ -189,8 +197,8 @@ def main():
                         counter["unclassified"] += 1
                     s = "\t".join(map(str, [read_name, read_length, bc, 
                                             orient, loc, loc1, loc2, ed]))
-                    metrics.write(s)
-                    metrics.write("\n")
+                    mf.write(s)
+                    mf.write("\n")
                     i += 1
     # single thread
     else:
@@ -209,15 +217,19 @@ def main():
                 counter["unclassified"] += 1
             s = "\t".join(map(str, [read_name, read_length, bc, 
                                     orient, loc, loc1, loc2, ed]))
-            metrics.write(s)
-            metrics.write("\n")
+            mf.write(s)
+            mf.write("\n")
 
-    metrics.close()
+    mf.close()
 
-    with open(options.prefix + ".stat", "w+") as fw:
-        for k in sorted(counter.keys()):
-            v = counter[k]
-            fw.write("%s\t%d\n" % (k, v))
+    if stats is None:
+        sf = sys.stderr
+    else:
+        sf = open(stats, "w+")
+    for k in sorted(counter.keys()):
+        v = counter[k]
+        sf.write("%s\t%d\n" % (k, v))
+    sf.close()
 
     exit(0)
 
