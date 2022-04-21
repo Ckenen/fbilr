@@ -67,7 +67,7 @@ The `stats.txt` is a tab-delimited file that consists of 2 columns (shown ad fol
 
 Here, we show the schema of the barcode that exists in the read (100 nt):
 
-![Schema](schema.png)
+![Schema](src/schema.png)
 
 In case 1, the barcode exists in the head of the read with 0 edit distance (fully matched). 
 

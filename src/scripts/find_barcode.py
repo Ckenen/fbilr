@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import sys
-import gzip
 import optparse
 import multiprocessing
 from collections import defaultdict
 import edlib
 from Bio import SeqIO
+from pygz import PigzFile
 
 
 def align(seq, ref):
@@ -15,7 +15,7 @@ def align(seq, ref):
 def load_barcodes(path):
     barcodes = []
     if path.endswith(".gz"):
-        f = gzip.open(path, "rt")
+        f = PigzFile(path, "rt")
     else:
         f = open(path)
     for record in SeqIO.parse(f, "fasta"):
@@ -31,7 +31,7 @@ def load_reads(path):
     if path == "-":
         f = sys.stdin
     elif path.endswith(".gz"):
-        f = gzip.open(path, "rt")
+        f = PigzFile(path, "rt")
     else:
         f = open(path)
     for i, line in enumerate(f):
@@ -127,7 +127,7 @@ def worker(task):
     return results
 
 
-USAGE = """find_barcodes.py [options] barcodes.fasta reads.fastq.gz"""
+USAGE = """find_barcode.py [options] barcodes.fasta reads.fastq.gz"""
 
 
 def main():
@@ -159,7 +159,7 @@ def main():
     if metrics is None:
         mf = sys.stdout
     elif metrics.endswith(".gz"):
-        mf = gzip.open(metrics, "wt")
+        mf = PigzFile(metrics, "wt")
     else:
         mf = open(metrics, "w+")
 
