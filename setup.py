@@ -11,7 +11,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="fbilr",
-    version="1.0.1",
+    version="1.0.2",
     author="Zonggui Chen",
     author_email="ggchenzonggui@qq.com",
     description="Find barcode in long reads",
