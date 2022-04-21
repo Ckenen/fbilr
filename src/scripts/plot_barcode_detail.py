@@ -161,12 +161,12 @@ def plot_location(rows, outfile):
     counter_r_t = defaultdict(int)
 
     for row in rows:
-        if row[7] > MAX_EDIT_DISTANCE: # edit distance
+        if row[6] > MAX_EDIT_DISTANCE: # edit distance
             continue
-        orient = row[3]
-        length = row[1]
-        start = row[5]
-        end = row[6]
+        orient = row[2]
+        length = row[0]
+        start = row[4]
+        end = row[5]
         dis1 = start
         dis2 = length - end
         if orient == "F":
@@ -241,7 +241,7 @@ def main():
         row[5] = int(row[5])
         row[6] = int(row[6])
         row[7] = int(row[7])
-        rows.append(row[1:])
+        rows.append(row[1:]) # remove read name
     f.close()
             
     plot_edit_distance_distribution(rows, prefix + ".ed_dis.pdf")
