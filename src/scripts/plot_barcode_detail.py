@@ -176,11 +176,11 @@ def plot_location(rows, outfile):
             counter_r_h[dis1] += 1
             counter_r_t[dis2] += 1
 
-    fig, axs = plt.subplots(2, 2, figsize=(10, 6))
+    fig, axs = plt.subplots(2, 2, figsize=(16, 6))
 
     plt.sca(axs[0][0])
     plt.title("Barcodes in forward")
-    xs = np.arange(0, 101)
+    xs = np.arange(0, 151)
     ys = [counter_f_h[x] for x in xs]
     t = sum(counter_f_h.values())
     ys = np.array(ys) * 100 / t
@@ -191,8 +191,8 @@ def plot_location(rows, outfile):
     plt.tight_layout()
 
     plt.sca(axs[0][1])
-    plt.title("Barcodes in reverse")
-    xs = np.arange(-100, 1)
+    plt.title("Barcodes in forward")
+    xs = np.arange(-150, 1)
     ys = [counter_f_t[-x] for x in xs]
     t = sum(counter_f_t.values())
     ys = np.array(ys) * 100 / t
@@ -202,8 +202,8 @@ def plot_location(rows, outfile):
     plt.tight_layout()
 
     plt.sca(axs[1][0])
-    plt.title("Barcodes in forward")
-    xs = np.arange(0, 101)
+    plt.title("Barcodes in reverse")
+    xs = np.arange(0, 151)
     ys = [counter_r_h[x] for x in xs]
     t = sum(counter_r_h.values())
     ys = np.array(ys) * 100 / t
@@ -215,7 +215,7 @@ def plot_location(rows, outfile):
 
     plt.sca(axs[1][1])
     plt.title("Barcodes in reverse")
-    xs = np.arange(-100, 1)
+    xs = np.arange(-150, 1)
     ys = [counter_r_t[-x] for x in xs]
     t = sum(counter_r_t.values())
     ys = np.array(ys) * 100 / t

@@ -9,7 +9,7 @@ from pygz import PigzFile
 
 
 def align(seq, ref):
-    return edlib.align(seq, ref, task='path', mode='HW')
+    return edlib.align(seq, ref, task='locations', mode='HW')
 
 
 def load_barcodes(path):
