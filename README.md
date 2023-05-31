@@ -8,21 +8,17 @@ FBILR is designed to find the best-matched barcode on reads and report detailed 
 
 The usage of FBILR is shown below:
 
-    find_barcodes.py -t 8 -w 200 -m metrics.txt -s stats.txt barcodes.fasta reads.fastq.gz
-    # or
-    find_barcodes.py -t 8 -w 200 -s stats.txt barcodes.fasta reads.fastq.gz | gzip -c > metrics.txt.gz
-    # or 
-    pigz -p 4 -d -c reads.fastq.gz | find_barcodes.py -t 8 -w 200 -s stats.txt barcodes.fasta - | pigz -p 4 -c > metrics.txt.gz
+    find_barcodes.py -t 8 -w 200 -m matrix.txt -s summary.txt barcodes.fasta reads.fastq.gz    
 
 After that, you can visualize the result with the following command:
 
-    plot_barcode_detail.py -m metrics.txt -p outdir/out
+    plot_barcode_detail.py -m matrix.txt -p outdir/out
 
 ## Output files
 
-The find_barcode.py script will output 2 files (`metrics.txt` and `stats.txt`).
+The find_barcode.py script will output 2 files (`matrix.txt` and `summary.txt`).
 
-The `metrics.txt` is a tab-delimited file that consists of 8 columns (shown as follows). In this file, one row corresponds to one read in the input FASTQ file. Each read can find an optimal barcode, even though the edit distance is large (edit distance represents the difference between barcode sequence and reference sequence, including mismatch, insertion, and deletion of bases).
+The `matrix.txt` is a tab-delimited file that consists of 8 columns (shown as follows). In this file, one row corresponds to one read in the input FASTQ file. Each read can find an optimal barcode, even though the edit distance is large (edit distance represents the difference between barcode sequence and reference sequence, including mismatch, insertion, and deletion of bases).
 
     column 1: read name
     column 2: read length
@@ -42,7 +38,7 @@ The `metrics.txt` is a tab-delimited file that consists of 8 columns (shown as f
     21c0fe8d-1725-42ba-b490-eec2cd6f76b3    408     Bar2    F       H       27      51      0
     90af744f-1367-493d-84e2-ca2375413e2d    551     Bar8    F       H       47      71      0
 
-The `stats.txt` is a tab-delimited file that consists of 2 columns (shown ad follows). Whether a barcode exists on a read is determined by edit distance (similarity). If the edit distance is small enough (-e option), we can confidently judge that the barcode exists, otherwise does not exist (unclassified). This file statistics the count of each barcode.
+The `summary.txt` is a tab-delimited file that consists of 2 columns (shown ad follows). Whether a barcode exists on a read is determined by edit distance (similarity). If the edit distance is small enough (-e option), we can confidently judge that the barcode exists, otherwise does not exist (unclassified). This file statistics the count of each barcode.
 
     column 1: barcode name
     column 2: count

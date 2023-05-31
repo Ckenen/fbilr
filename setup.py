@@ -11,13 +11,13 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="fbilr",
-    version="1.0.2",
+    version="1.0.3",
     author="Zonggui Chen",
     author_email="ggchenzonggui@qq.com",
     description="Find barcode in long reads",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitee.com/chenzonggui/fbilr",
+    url="https://github.com/Ckenen/fbilr",
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     classifiers=[
