@@ -6,7 +6,7 @@ import logging
 from pygz import PigzFile
 from fbilr import utils
 
-DEBUG = True
+DEBUG = False
 
 CONFIDENCE_EDIT_DISTANCE = 3
 
@@ -148,7 +148,7 @@ class BarcodeFinder(object):
         logging.info("spent %dh%dm%.2fs" % (h, m, s))
         
     def execute(self):
-        pool = multiprocessing.Pool(self.threads, maxtasksperchild=5)
+        pool = multiprocessing.Pool(self.threads, maxtasksperchild=1)
         submitted_batch_list = []
         batch_loader = utils.load_batch(self.f_reads, self.reads_per_batch)
         for batch_id, reads in enumerate(batch_loader):    
@@ -160,6 +160,7 @@ class BarcodeFinder(object):
                 if len(submitted_batch_list) > 0:
                     item = submitted_batch_list[0]
                     if item[2].ready():
+                        assert item[2].successful()
                         self.process_results(item[1], item[2].get())
                         submitted_batch_list.pop(0)
                         logging.info("Processed batch %d" % item[0])
@@ -175,12 +176,14 @@ class BarcodeFinder(object):
         while len(submitted_batch_list) > 0:
             item = submitted_batch_list[0]
             if item[2].ready():
+                assert item[2].successful()
                 self.process_results(item[1], item[2].get())
                 submitted_batch_list.pop(0)
                 logging.info("Processed batch %d" % item[0])
             else:
                 time.sleep(1)
         pool.close()
+        pool.terminate()
         pool.join()
             
     def process_results(self, reads, rows):  
@@ -279,7 +282,7 @@ class PairEndBarcodeFinder(BarcodeFinder):
         assert self.f_summary is None
     
     def execute(self):
-        pool = multiprocessing.Pool(self.threads, maxtasksperchild=5)
+        pool = multiprocessing.Pool(self.threads, maxtasksperchild=1)
         submitted_batch_list = []
         batch_loader = utils.load_batch(self.f_reads, self.reads_per_batch)
         for batch_id, reads in enumerate(batch_loader):    
@@ -291,6 +294,7 @@ class PairEndBarcodeFinder(BarcodeFinder):
                 if len(submitted_batch_list) > 0:
                     item = submitted_batch_list[0]
                     if item[2].ready():
+                        assert item[2].successful()
                         self.process_results(item[1], item[2].get())
                         submitted_batch_list.pop(0)
                         logging.info("Processed batch %d" % item[0])
@@ -306,14 +310,16 @@ class PairEndBarcodeFinder(BarcodeFinder):
         while len(submitted_batch_list) > 0:
             item = submitted_batch_list[0]
             if item[2].ready():
+                assert item[2].successful()
                 self.process_results(item[1], item[2].get())
                 submitted_batch_list.pop(0)
                 logging.info("Processed batch %d" % item[0])
             else:
                 time.sleep(1)
         pool.close()
+        pool.terminate()
         pool.join()
-        
+               
     def process_results(self, reads, rows):  
         assert len(reads) == len(rows)
         for read, row in zip(reads, rows):

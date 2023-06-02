@@ -20,6 +20,7 @@ def load_barcodes(path):
     return barcodes
     
 def load_reads(path):
+    loaded_reads = 0
     if path.endswith(".gz"):
         f = PigzFile(path, "rt")
     else:
@@ -36,6 +37,9 @@ def load_reads(path):
         elif j == 3:
             read_quality = line[:-1]
             yield read_name, read_sequence, read_quality
+            loaded_reads += 1
+            # if loaded_reads >= 500000:
+            #     break
     f.close()
     
 def load_batch(path, reads_per_batch=100):
