@@ -2,25 +2,51 @@
 
 ## Description
 
-FBILR is designed to find the best-matched barcode on reads and report detailed information (orientation, location, and edit distance). Since the barcode is likely to be located at one of the ends of the read (head or tail), and the read length is longer than 1,000 bp, FBILR restricts the search range to within 200bp of both ends to reduce the amount of computation and save time. Besides, FBILR is able to run in parallel and the order of output is accordant to input.
+FBILR is designed to find the best-matched barcode in long reads and report detailed information, such as direction, location, and edit distance. Since the barcode is likely to be located at one of the ends of the read (head or tail), and the read length is longer than 1,000 bp, FBILR restricts the search range to within 200 nt (`-w` option) of both ends to reduce the amount of computation and save time. Besides, FBILR can run in parallel (`-t` option).
+
+In FBILR, edit distance represents the difference between barcode sequence and reference sequence, including mismatch, insertion, and deletion of bases. The edit distance is calculated by `edlib`.
+
+For each barcode, FBILR searches the best-matched hits of the forward barcode in the read head, the reverse barcode in the read head, the forward barcode in the read tail, and the reverse barcode in the read tail, respectively. In single-end mode (`-m` option), report the minimum edit distance hit around all barcodes. In paired-end mode, report the minimum edit distance hit in read head and tail around all barcodes respectively.
+
+![Schema](docs/schematic.png)
+
+Here, we show the schema of the barcode that exists in a 100 nt read:
+
+ * In case 1, the barcode exists in the head of the read with 0 edit distance (fully matched). 
+ * In case 2, the barcode exists in the middle of the read with 2 edit distance (2 mismatch). 
+ * In case 3, the barcode exists in the tail of the read with 3 edit distance (1 mismatch and 2 deletion).
+
+Finally, the bar1 is the best-matched barcode in this read.
 
 ## Usage
 
 The usage of FBILR is shown below:
 
-    find_barcodes.py -t 8 -w 200 -m matrix.txt -s summary.txt barcodes.fasta reads.fastq.gz    
+    # Single-end
+    fbilr -t 8 -w 200 -o matrix.tsv -b barcodes.fa reads.fq.gz
+    fbilr -t 8 -w 200 -b barcodes.fa reads.fq.gz | pigz -p 8 -c > matrix.tsv.gz
 
-After that, you can visualize the result with the following command:
+    # Paired-end
+    fbilr -t 8 -w 200 -m PE -o matrix.tsv -b barcodes.fa reads.fq.gz
 
-    plot_barcode_detail.py -m matrix.txt -p outdir/out
+    # Multiple barcode list
+    fbilr -t 8 -w 200 -o matrix.tsv -b barcodes1.fa,barcodes2.fa reads.fq.gz
 
-## Output files
+    # Ignore read name in output
+    fbilr -t 8 -w 200 -i -o matrix.tsv -b barcodes.fa reads.fq.gz
 
-The find_barcode.py script will output 2 files (`matrix.txt` and `summary.txt`).
+    # Include read sequence and quality in output
+    fbilr -t 8 -w 200 -q -o matrix.tsv -b barcodes.fa reads.fq.gz
 
-The `matrix.txt` is a tab-delimited file that consists of 8 columns (shown as follows). In this file, one row corresponds to one read in the input FASTQ file. Each read can find an optimal barcode, even though the edit distance is large (edit distance represents the difference between barcode sequence and reference sequence, including mismatch, insertion, and deletion of bases).
+    # Find barcode and split
+    fbilr -t 8 -w 200 -q -b barcodes.fa reads.fq.gz | your_custom_split_script.py
 
-    column 1: read name
+
+## Output
+
+The FBILR will output tab-delimited results that consist of multiple columns (shown as follows). In the results, one row corresponds to one read in the input FASTQ file. Each read can find an optimal barcode, even though the edit distance is large.
+
+    column 1: read name, if the '-i' option is set, the value is '.'
     column 2: read length
     column 3: barcode name
     column 4: barcode orientation (F or R)
@@ -28,6 +54,7 @@ The `matrix.txt` is a tab-delimited file that consists of 8 columns (shown as fo
     column 6: start in read (0-base, included)
     column 7: end in read (0-base, not included)
     column 8: edit distance
+    column ...
 
     # Example:
     1b2e274b-9da7-4a5f-b40f-e6c36249d825    215     Bar4    R       T       172     196     0
@@ -38,37 +65,33 @@ The `matrix.txt` is a tab-delimited file that consists of 8 columns (shown as fo
     21c0fe8d-1725-42ba-b490-eec2cd6f76b3    408     Bar2    F       H       27      51      0
     90af744f-1367-493d-84e2-ca2375413e2d    551     Bar8    F       H       47      71      0
 
-The `summary.txt` is a tab-delimited file that consists of 2 columns (shown ad follows). Whether a barcode exists on a read is determined by edit distance (similarity). If the edit distance is small enough (-e option), we can confidently judge that the barcode exists, otherwise does not exist (unclassified). This file statistics the count of each barcode.
+Column 3 to column 8 represent 1 hit (6 columns). The number of columns is flexible and depends on the number of barcode lists and mode. The structure of columns is: information columns (2) + hit columns (6 * N) + fastq columns (4, optional)
 
-    column 1: barcode name
-    column 2: count
+The number of columns in single-end mode is 2 + 6. The number of columns in paired-end mode is 2 + 6 * 2. If the `-q` option is set, an additional 4 columns (name, sequence, "+", quality) is append to the tail.
 
-    # Example: 
-    Bar1	783154
-    Bar2	236937
-    Bar3	1579564
-    Bar4	1266932
-    Bar5	2876236
-    Bar6	1571845
-    Bar7	1663693
-    Bar8	5781377
-    Bar9	720325
-    unclassified	2578447
+For 2 barcode lists, the number of columns in single-end mode is 2 + 6 * 2. The number of columns in paired-end mode is 2 + 6 * 2 * 2.
+
+Number of barcode list|Mode|Include fastq|Number of column
+:---:|:---:|:---:|:---:
+1|Single-end|N|2 + 6 = 8
+1|Single-end|Y|2 + 6 + 4 = 12
+1|Paired-end|N|2 + 6 * 2 = 14
+1|Paired-end|Y|2 + 6 * 2 + 4 = 18
+2|Single-end|N|2 + 6 * 2 = 14
+2|Single-end|Y|2 + 6 * 2 + 4 = 18
+2|Paired-end|N|2 + 6 * 4 = 26
+2|Paired-end|Y|2 + 6 * 4 + 4 = 30
+3|Single-end|N|2 + 6 * 3 = 20
+3|Single-end|Y|2 + 6 * 3 + 4 = 24
+3|Paired-end|N|2 + 6 * 6 = 38
+3|Paired-end|Y|2 + 6 * 6 + 4 = 42
 
 
-## Schema
 
-Here, we show the schema of the barcode that exists in the read (100 nt):
+## Example
 
-![Schema](src/schema.png)
-
-In case 1, the barcode exists in the head of the read with 0 edit distance (fully matched). 
-
-In case 2, the barcode exists in the middle of the read with 2 edit distance (2 mismatch). 
-
-In case 3, the barcode exists in the tail of the read with 3 edit distance (1 mismatch and 2 deletion).
-
-Finally, the bar1 is the best-matched barcode in this read.
+    1. Demultiplexing XXX datasets.
+    2. Demultiplexing XXX datasets.
 
 ## Packaging and distributing
 

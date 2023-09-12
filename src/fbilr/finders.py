@@ -8,7 +8,7 @@ from fbilr import utils
 
 DEBUG = False
 
-CONFIDENCE_EDIT_DISTANCE = 3
+# CONFIDENCE_EDIT_DISTANCE = 0
 
 
 class BarcodeFinder(object):
@@ -17,6 +17,7 @@ class BarcodeFinder(object):
         self.f_reads = None
         self.threads = 1
         self.max_edit_distance = 5
+        self.high_confident_ed = 0
         self.width = 200
         self.reads_per_batch = 10000 # 10k
         self.max_submitted_batch = self.threads * 2
@@ -44,7 +45,7 @@ class BarcodeFinder(object):
         return reference_sequences
 
     @staticmethod
-    def _worker(references, barcodes):
+    def _worker(references, barcodes, high_confident_ed):
         rows = []
         for seq_head, seq_tail, length in references:
             a = None  # alignment result: [loc1, loc2, ed]
@@ -56,13 +57,13 @@ class BarcodeFinder(object):
                 if a is None or tmp[2] < a[2]:
                     a = tmp
                     bc, n_direction, n_location = bc_name, 0, 0
-                    if a[2] <= CONFIDENCE_EDIT_DISTANCE:
+                    if a[2] <= high_confident_ed:
                         break
                 tmp = utils.align(bc_seq_r, seq_head)
                 if tmp[2] < a[2]:
                     a = tmp
                     bc, n_direction, n_location = bc_name, 1, 0
-                    if a[2] <= CONFIDENCE_EDIT_DISTANCE:
+                    if a[2] <= high_confident_ed:
                         break
                 if seq_tail is None:
                     continue
@@ -70,14 +71,14 @@ class BarcodeFinder(object):
                 if tmp[2] < a[2]:
                     a = tmp
                     bc, n_direction, n_location = bc_name, 0, 1
-                    if a[2] <= CONFIDENCE_EDIT_DISTANCE:
+                    if a[2] <= high_confident_ed:
                         break
 
                 tmp = utils.align(bc_seq_r, seq_tail)
                 if tmp[2] < a[2]:
                     a = tmp
                     bc, n_direction, n_location = bc_name, 1, 1
-                    if a[2] <= CONFIDENCE_EDIT_DISTANCE:
+                    if a[2] <= high_confident_ed:
                         break
             assert a
             direction = "F" if n_direction == 0 else "R"
@@ -98,19 +99,23 @@ class BarcodeFinder(object):
         
     def prepare(self):
         self.max_submitted_batch = self.threads * 2
+        
         # output for metrics
         if self.f_matrix.endswith(".gz"):
             self.h_matrix = PigzFile(self.f_matrix, "wt")
         else:
             self.h_matrix = open(self.f_matrix, "w+")
+            
         # load barcodes
         self.barcodes = utils.load_barcodes(self.f_barcode)
         assert len(self.barcodes) > 0
+        
         # summary
         self.counter_of_summary = dict()
         for barcode in self.barcodes:
             self.counter_of_summary[barcode[0]] = 0
         self.counter_of_summary["unclassified"] = 0
+        
         # output fastq
         if self.splitted_fastq_dir:
             if not os.path.exists(self.splitted_fastq_dir):
@@ -166,7 +171,7 @@ class BarcodeFinder(object):
                         logging.info("Processed batch %d" % item[0])
                 # Do not submit too many tasks
                 if len(submitted_batch_list) < self.max_submitted_batch:
-                    args = (reference_sequences, self.barcodes)
+                    args = (reference_sequences, self.barcodes, self.high_confident_ed)
                     r = pool.apply_async(BarcodeFinder._worker, args)
                     submitted_batch_list.append([batch_id, reads, r])
                     logging.info("Submitted batch %d" % batch_id)
@@ -213,13 +218,13 @@ class BarcodeFinder(object):
             
 class PairEndBarcodeFinder(BarcodeFinder):
     @staticmethod
-    def _worker(references, barcodes):
+    def _worker(references, barcodes, high_confident_ed):
         rows = []
         for seq_head, seq_tail, length in references:
             if length < len(seq_head) * 2:
                 rows.append([".", ".", ".", -1, -1, -1, ".", ".", ".", -1, -1, -1])
                 continue
-            a_head = None # alignment result: [loc1, loc2, ed]
+            a_head = None # alignment result: [start, end, ed]
             a_tail = None
             bc_head = None # best barcode
             bc_tail = None
@@ -232,26 +237,26 @@ class PairEndBarcodeFinder(BarcodeFinder):
                 if a_head is None or tmp[2] < a_head[2]:
                     a_head = tmp
                     bc_head, n_direction_head, n_location_head = bc_name, 0, 0
-                    if a_head[2] <= CONFIDENCE_EDIT_DISTANCE:
+                    if a_head[2] <= high_confident_ed:
                         break
                 tmp = utils.align(bc_seq_r, seq_head)
                 if tmp[2] < a_head[2]:
                     a_head = tmp
                     bc_head, n_direction_head, n_location_head = bc_name, 1, 0
-                    if a_head[2] <= CONFIDENCE_EDIT_DISTANCE:
+                    if a_head[2] <= high_confident_ed:
                         break
             for bc_name, bc_seq_f, bc_seq_r in barcodes:
                 tmp = utils.align(bc_seq_f, seq_tail)
                 if a_tail is None or tmp[2] < a_tail[2]:
                     a_tail = tmp
                     bc_tail, n_direction_tail, n_location_tail = bc_name, 0, 1
-                    if a_tail[2] <= CONFIDENCE_EDIT_DISTANCE:
+                    if a_tail[2] <= high_confident_ed:
                         break
                 tmp = utils.align(bc_seq_r, seq_tail)
                 if tmp[2] < a_tail[2]:
                     a_tail = tmp
                     bc_tail, n_direction_tail, n_location_tail = bc_name, 1, 1
-                    if a_tail[2] <= CONFIDENCE_EDIT_DISTANCE:
+                    if a_tail[2] <= high_confident_ed:
                         break
             assert a_head
             assert a_tail
@@ -278,8 +283,8 @@ class PairEndBarcodeFinder(BarcodeFinder):
         # load barcodes
         self.barcodes = utils.load_barcodes(self.f_barcode)
         assert len(self.barcodes) > 0
-        assert self.splitted_fastq_dir is None
-        assert self.f_summary is None
+        assert self.splitted_fastq_dir is None # pair-end mode do not support output fastq files
+        assert self.f_summary is None # pair-end mode do not support summary
     
     def execute(self):
         pool = multiprocessing.Pool(self.threads, maxtasksperchild=1)
@@ -300,7 +305,7 @@ class PairEndBarcodeFinder(BarcodeFinder):
                         logging.info("Processed batch %d" % item[0])
                 # Do not submit too many tasks
                 if len(submitted_batch_list) < self.max_submitted_batch:
-                    args = (reference_sequences, self.barcodes)
+                    args = (reference_sequences, self.barcodes, self.high_confident_ed)
                     r = pool.apply_async(PairEndBarcodeFinder._worker, args)
                     submitted_batch_list.append([batch_id, reads, r])
                     logging.info("Submitted batch %d" % batch_id)
@@ -328,6 +333,6 @@ class PairEndBarcodeFinder(BarcodeFinder):
             if self.ignore_read_name:
                 row1 = [".", length] # ignore read name
             else:
-                row1 = [name.split()[0][1:], length]    
+                row1 = [name.split()[0][1:], length]
             row1.extend(row)
             self.h_matrix.write("\t".join(map(str, row1)) + "\n")
