@@ -18,6 +18,15 @@ Here, we show the schema of the barcode that exists in a 100 nt read:
 
 Finally, the bar1 is the best-matched barcode in this read.
 
+## Installation
+
+    # 
+    python setup.py test
+    python setup.py install
+
+    # 
+    pip install fbilr
+
 ## Usage
 
 The usage of FBILR is shown below:
@@ -86,15 +95,20 @@ Number of barcode list|Mode|Include fastq|Number of column
 3|Paired-end|N|2 + 6 * 6 = 38
 3|Paired-end|Y|2 + 6 * 6 + 4 = 42
 
+## Splitting
 
-
-## Example
+### Example
 
     1. Demultiplexing XXX datasets.
     2. Demultiplexing XXX datasets.
 
-## Packaging and distributing
+## Packaging and distribute PyPI
 
     python -m build
     python3 -m twine upload --repository pypi dist/*
 
+## Change logs
+
+### 2023-09-13 (v1.2.0)
+
+1. Added test for FBILR.

@@ -40,34 +40,40 @@ class MatrixRecord(object):
 
 class MatrixReader(object):
     def open(path):
-        with open(path) as f:
-            for line in f:
+        if path.endswith(".gz"):
+            f = PigzFile(path)
+        else:
+            f = open(path)
+
+        for line in f:
+            
+            row = line.strip("\n").split("\t")
+            
+            name, length = row[0], int(row[1])
+            
+            hits = []
+            n, m = int((len(row) - 2) / 6), (len(row) - 2) % 6
+            assert n > 0
+            assert m == 0 or m == 4
+            for i in range(n):
+                bc, direction, loc, start, end, ed = row[i * 6 + 2:(i + 1) * 6 + 2]
+                hit = Hit(name=bc, 
+                            direction=direction, 
+                            location=loc, 
+                            start=int(start), 
+                            end=int(end), 
+                            ed=int(ed))
+                hits.append(hit)
                 
-                row = line.strip("\n").split("\t")
+            read = None
+            if m == 4:
+                pass
                 
-                name, length = row[0], int(row[1])
+            record = MatrixRecord(name=name, length=length, hits=hits, read=read)
                 
-                hits = []
-                n, m = int((len(row) - 2) / 6), (len(row) - 2) % 6
-                assert n > 0
-                assert m == 0 or m == 4
-                for i in range(n):
-                    bc, direction, loc, start, end, ed = row[i * 6 + 2:(i + 1) * 6 + 2]
-                    hit = Hit(name=bc, 
-                              direction=direction, 
-                              location=loc, 
-                              start=int(start), 
-                              end=int(end), 
-                              ed=int(ed))
-                    hits.append(hit)
-                    
-                read = None
-                if m == 4:
-                    pass
-                    
-                record = MatrixRecord(name=name, length=length, hits=hits, read=read)
-                    
-                yield record
+            yield record
+        
+        f.close()
         
 
 class Matrix2Record(object):

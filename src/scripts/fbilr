@@ -244,9 +244,6 @@ def process_results(fw, reads, hits_list, ignore_name=False, include_read=False)
     fw.flush()
 
 
-DEBUG = False
-
-
 def run_pipeline(f_read, f_barcode_list, f_outfile, 
                  width=200, mode="SE", threads=1, 
                  confident_edit_distance=0,
@@ -265,10 +262,11 @@ def run_pipeline(f_read, f_barcode_list, f_outfile,
     max_submitted_batch = threads * 2
     pool = mp.Pool(threads, maxtasksperchild=100)
 
-    for batch_id, reads in enumerate(utils.load_batch(f_read, reads_per_batch)):    
-
-        if DEBUG and batch_id >= 240:
-            break
+    for i, reads in enumerate(utils.load_batch(f_read, reads_per_batch)):    
+        
+        # Testing
+        # if i >= 240:
+        #     break
 
         while True:
             
@@ -284,11 +282,11 @@ def run_pipeline(f_read, f_barcode_list, f_outfile,
                     
             # Do not submit too many tasks
             if len(submitted_task_list) < max_submitted_batch:
-                edge_sequences_list = [utils.cut_edge_sequence(read[1], width) for read in reads]
-                args = (edge_sequences_list, barcodes_list, mode, confident_edit_distance)
-                task = [batch_id, reads, pool.apply_async(worker, args)]
+                edge_seqs_list = [utils.cut_edge_sequence(read[1], width) for read in reads]
+                args = (edge_seqs_list, barcodes_list, mode, confident_edit_distance)
+                task = [i, reads, pool.apply_async(worker, args)]
                 submitted_task_list.append(task)
-                logging.info("Submitted batch %d" % batch_id)
+                logging.info("Submitted batch %d" % i)
                 break
             else:
                 time.sleep(0.01)
@@ -355,7 +353,7 @@ def main():
     
     f_read = None
     if len(args) != 1:
-        logging.critical("Please provided input fastq file or '-' for stdin.")
+        logging.critical("Please provided input fastq file.")
         exit(1)
     else:
         f_read = args[0]
