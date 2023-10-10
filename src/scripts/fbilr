@@ -27,7 +27,7 @@ def worker(edge_sequences_list, barcodes_list, mode, confident_ed):
                 hit_ed = None
                 for bc_name, bc_seq_f, bc_seq_r in barcodes:
                     
-                    if len(bc_seq_f) > len(bc_seq_f):
+                    if len(bc_seq_f) > len(seq_head):
                         continue
 
                     # head forward
@@ -111,7 +111,7 @@ def worker(edge_sequences_list, barcodes_list, mode, confident_ed):
                 
                 for bc_name, bc_seq_f, bc_seq_r in barcodes:
                     
-                    if len(bc_seq_f) > len(bc_seq_f):
+                    if len(bc_seq_f) > len(seq_head):
                         continue
 
                     # head forward
@@ -140,19 +140,12 @@ def worker(edge_sequences_list, barcodes_list, mode, confident_ed):
                     
                 if hit_bc is not None:
                     mid = length / 2
-                    if hit_end < mid:
+                    if hit_end <= mid:
                         hit_location = "H"
-                    elif hit_start > mid:
+                    elif hit_start >= mid:
                         hit_location = "T"
                     else:
                         hit_location = "M"
-                        
-                        hit_bc = None
-                        hit_direction = None
-                        hit_location = None
-                        hit_start = None
-                        hit_end = None
-                        hit_ed = None
 
                 hits.append([hit_bc, hit_direction, hit_location, hit_start, hit_end, hit_ed])
                 
@@ -167,7 +160,7 @@ def worker(edge_sequences_list, barcodes_list, mode, confident_ed):
                 
                 for bc_name, bc_seq_f, bc_seq_r in barcodes:
                     
-                    if len(bc_seq_f) > len(bc_seq_f):
+                    if len(bc_seq_f) > len(seq_tail):
                         continue
                     
                     # tail forward
@@ -196,19 +189,12 @@ def worker(edge_sequences_list, barcodes_list, mode, confident_ed):
                 
                 if hit_bc is not None:
                     mid = length / 2
-                    if hit_end < mid:
+                    if hit_end <= mid:
                         hit_location = "H"
-                    elif hit_start > mid:
+                    elif hit_start >= mid:
                         hit_location = "T"
                     else:
                         hit_location = "M"
-                        
-                        hit_bc = None
-                        hit_direction = None
-                        hit_location = None
-                        hit_start = None
-                        hit_end = None
-                        hit_ed = None
 
                 hits.append([hit_bc, hit_direction, hit_location, hit_start, hit_end, hit_ed])
 
