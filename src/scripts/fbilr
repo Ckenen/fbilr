@@ -79,9 +79,9 @@ def worker(edge_sequences_list, barcodes_list, mode, confident_ed):
                 
                 if hit_bc is not None:
                     mid = length / 2
-                    if hit_end < mid:
+                    if hit_end <= mid:
                         hit_location = "H"
-                    elif hit_start > mid:
+                    elif hit_start >= mid:
                         hit_location = "T"
                     else:
                         hit_location = "M"
