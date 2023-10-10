@@ -67,7 +67,7 @@ class MatrixReader(object):
                 
             read = None
             if m == 4:
-                pass
+                raise NotImplementedError()
                 
             record = MatrixRecord(name=name, length=length, hits=hits, read=read)
                 
@@ -76,57 +76,57 @@ class MatrixReader(object):
         f.close()
         
 
-class Matrix2Record(object):
-    def __init__(self):
-        # read
-        self.read_name = None
-        self.read_length = None
-        # head
-        self.head_barcode = "."
-        self.head_direction = "."
-        self.head_location = "."
-        self.head_start = -1
-        self.head_end = -1
-        self.head_ed = -1
-        # tail
-        self.tail_barcode = "."
-        self.tail_direction = "."
-        self.tail_location = "."
-        self.tail_start = -1
-        self.tail_end = -1
-        self.tail_ed = -1
+# class Matrix2Record(object):
+#     def __init__(self):
+#         # read
+#         self.read_name = None
+#         self.read_length = None
+#         # head
+#         self.head_barcode = "."
+#         self.head_direction = "."
+#         self.head_location = "."
+#         self.head_start = -1
+#         self.head_end = -1
+#         self.head_ed = -1
+#         # tail
+#         self.tail_barcode = "."
+#         self.tail_direction = "."
+#         self.tail_location = "."
+#         self.tail_start = -1
+#         self.tail_end = -1
+#         self.tail_ed = -1
         
-    def __str__(self):
-        row = [self.read_name, self.read_length, 
-               self.head_barcode, self.head_direction, self.head_location, 
-               self.head_start, self.head_end, self.head_ed, 
-               self.tail_barcode, self.tail_direction, self.tail_location, 
-               self.tail_start, self.tail_end, self.tail_ed]
-        s = "\t".join(map(str, row))
-        return s
+#     def __str__(self):
+#         row = [self.read_name, self.read_length, 
+#                self.head_barcode, self.head_direction, self.head_location, 
+#                self.head_start, self.head_end, self.head_ed, 
+#                self.tail_barcode, self.tail_direction, self.tail_location, 
+#                self.tail_start, self.tail_end, self.tail_ed]
+#         s = "\t".join(map(str, row))
+#         return s
 
 
-class Matrix2Reader(object):
-    @classmethod
-    def open(cls, path):
-        with PigzFile(path, "rt") as f:
-            for line in f:
-                row = line.strip("\n").split("\t")
-                record = Matrix2Record()
-                record.read_name = row[0]
-                record.read_length = int(row[1])
-                if row[2] != ".":
-                    record.head_barcode = row[2]
-                    record.head_direction = row[3]
-                    record.head_location = row[4]
-                    record.head_start = int(row[5])
-                    record.head_end = int(row[6])
-                    record.head_ed = int(row[7])
-                if row[8] != ".":
-                    record.tail_barcode = row[8]
-                    record.tail_direction = row[9]
-                    record.tail_location = row[10]
-                    record.tail_start = int(row[11])
-                    record.tail_end = int(row[12])
-                    record.tail_ed = int(row[13])
-                yield record
+# class Matrix2Reader(object):
+#     @classmethod
+#     def open(cls, path):
+#         with PigzFile(path, "rt") as f:
+#             for line in f:
+#                 row = line.strip("\n").split("\t")
+#                 record = Matrix2Record()
+#                 record.read_name = row[0]
+#                 record.read_length = int(row[1])
+#                 if row[2] != ".":
+#                     record.head_barcode = row[2]
+#                     record.head_direction = row[3]
+#                     record.head_location = row[4]
+#                     record.head_start = int(row[5])
+#                     record.head_end = int(row[6])
+#                     record.head_ed = int(row[7])
+#                 if row[8] != ".":
+#                     record.tail_barcode = row[8]
+#                     record.tail_direction = row[9]
+#                     record.tail_location = row[10]
+#                     record.tail_start = int(row[11])
+#                     record.tail_end = int(row[12])
+#                     record.tail_ed = int(row[13])
+#                 yield record
