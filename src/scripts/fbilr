@@ -6,6 +6,16 @@ import time
 import multiprocessing as mp
 from fbilr import utils
    
+   
+def get_location(start, end, length):
+    mid = length / 2
+    if end <= mid:
+        return "H"
+    elif start >= mid:
+        return "T"
+    else:
+        return "M"
+
 
 def worker(edge_sequences_list, barcodes_list, mode, confident_ed):
 
@@ -78,13 +88,7 @@ def worker(edge_sequences_list, barcodes_list, mode, confident_ed):
                             break
                 
                 if hit_bc is not None:
-                    mid = length / 2
-                    if hit_end <= mid:
-                        hit_location = "H"
-                    elif hit_start >= mid:
-                        hit_location = "T"
-                    else:
-                        hit_location = "M"
+                    hit_location = get_location(hit_start, hit_end, length)
 
                 hits.append([hit_bc, hit_direction, hit_location, hit_start, hit_end, hit_ed])
 
@@ -139,13 +143,7 @@ def worker(edge_sequences_list, barcodes_list, mode, confident_ed):
                             break
                     
                 if hit_bc is not None:
-                    mid = length / 2
-                    if hit_end <= mid:
-                        hit_location = "H"
-                    elif hit_start >= mid:
-                        hit_location = "T"
-                    else:
-                        hit_location = "M"
+                    hit_location = get_location(hit_start, hit_end, length)
 
                 hits.append([hit_bc, hit_direction, hit_location, hit_start, hit_end, hit_ed])
                 
@@ -188,13 +186,7 @@ def worker(edge_sequences_list, barcodes_list, mode, confident_ed):
                             break
                 
                 if hit_bc is not None:
-                    mid = length / 2
-                    if hit_end <= mid:
-                        hit_location = "H"
-                    elif hit_start >= mid:
-                        hit_location = "T"
-                    else:
-                        hit_location = "M"
+                    hit_location = get_location(hit_start, hit_end, length)
 
                 hits.append([hit_bc, hit_direction, hit_location, hit_start, hit_end, hit_ed])
 
