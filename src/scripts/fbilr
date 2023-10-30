@@ -238,7 +238,8 @@ def run_pipeline(f_read, f_barcode_list, f_outfile,
     submitted_task_list = []
     reads_per_batch = 1000
     max_submitted_batch = threads * 2
-    pool = mp.Pool(threads, maxtasksperchild=100)
+    # pool = mp.Pool(threads, maxtasksperchild=100)
+    pool = mp.Pool(threads)
 
     for i, reads in enumerate(utils.load_batch(f_read, reads_per_batch)):    
         
