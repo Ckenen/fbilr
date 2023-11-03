@@ -224,7 +224,7 @@ def process_results(fw, reads, hits_list, ignore_name=False, include_read=False)
 
 def run_pipeline(f_read, f_barcode_list, f_outfile, 
                  width=200, mode="SE", threads=1, 
-                 confident_edit_distance=0,
+                 confident_edit_distance=0, reads_per_batch=1000,
                  ignore_name=False, include_read=False):
     
     barcodes_list = [utils.load_barcodes(p) for p in f_barcode_list]  
@@ -236,7 +236,7 @@ def run_pipeline(f_read, f_barcode_list, f_outfile,
         fw = open(f_outfile, "w+")
 
     submitted_task_list = []
-    reads_per_batch = 1000
+    # reads_per_batch = 10000
     max_submitted_batch = threads * 2
     # pool = mp.Pool(threads, maxtasksperchild=100)
     pool = mp.Pool(threads)
@@ -309,7 +309,10 @@ def main():
     
     group.add_option("-w", "--width", dest="width", type="int", default=200, metavar="INT",
                       help="Find barcode sequences within WIDTH of the boundary. [%default]")
-        
+    
+    group.add_option("-r", "--reads-per-batch", dest="reads_per_batch", default=1000, metavar="INT", 
+                     help="Reads per batch. [%default]")
+    
     group.add_option("-m", "--mode", dest="mode", default="SE", metavar="STR",
                       help="Running mode: SE or PE. [%default]")
     
@@ -360,6 +363,7 @@ def main():
                  mode=options.mode,
                  threads=options.threads,
                  confident_edit_distance=options.confident_edit_distance,
+                 reads_per_batch=options.reads_per_batch,
                  ignore_name=options.ignore_name, 
                  include_read=options.include_read)
     t2 = time.time()
