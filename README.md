@@ -20,12 +20,17 @@ Finally, the bar1 is the best-matched barcode in this read.
 
 ## Installation
 
-    # 
+    # 1. setuptools
     python setup.py test
     python setup.py install
 
-    # 
+    # 2. PyPI (TODD)
     pip install fbilr
+
+    # 3. Manual installation
+    export PYTHONPATH="`pwd`/src:${PYTHONPATH}"
+    export PATH="`pwd`/src/scripts:${PATH}"
+
 
 ## Usage
 
