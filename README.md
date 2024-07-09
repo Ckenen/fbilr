@@ -24,7 +24,7 @@ Finally, the bar1 is the best-matched barcode in this read.
     python setup.py test
     python setup.py install
 
-    # 2. PyPI (TODD)
+    # 2. PyPI (TODO)
     pip install fbilr
 
     # 3. Manual installation
