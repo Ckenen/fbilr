@@ -310,7 +310,7 @@ def main():
     group.add_option("-w", "--width", dest="width", type="int", default=200, metavar="INT",
                       help="Find barcode sequences within WIDTH of the boundary. [%default]")
     
-    group.add_option("-r", "--reads-per-batch", dest="reads_per_batch", default=1000, metavar="INT", 
+    group.add_option("-r", "--reads-per-batch", dest="reads_per_batch", type="int", default=1000, metavar="INT", 
                      help="Reads per batch. [%default]")
     
     group.add_option("-m", "--mode", dest="mode", default="SE", metavar="STR",
